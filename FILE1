@@ -1,1 +1,85 @@
+ЗАДАЧА №1 (C++)
+#include <iostream>  // Подключаем библиотеку для ввода/вывода
+using namespace std; // Используем стандартное пространство имен
+
+int main() {         // Главная функция программы
+    int numbers[] = {1, 2, 3, 4, 5}; // Создаем массив чисел
+    int n = 5;       // Размер массива
+    int sum = 0;     // Переменная для суммы (начинаем с 0)
+    
+    // Цикл for для перебора всех элементов массива
+    for (int i = 0; i < n; i++) {
+        sum += numbers[i]; // Добавляем каждый элемент к сумме
+    }
+    
+    cout << "Сумма элементов: " << sum << endl; // Выводим результат
+    return 0;     // Завершаем программу
+}
+ЗАДАЧА №2 (C++)
+#include <iostream>
+using namespace std;
+
+int main() {
+    int numbers[] = {8, 3, 12, 5, 9}; // Массив чисел
+    int n = 5;       // Количество элементов
+    int max = numbers[0]; // Предполагаем, что первый элемент - максимальный
+    
+    // Перебираем все элементы массива
+    for (int i = 1; i < n; i++) {
+        // Если текущий элемент больше текущего максимума
+        if (numbers[i] > max) {
+            max = numbers[i]; // Обновляем значение максимума
+        }
+    }
+    
+    cout << "Максимальный элемент: " << max << endl;
+    return 0;
+}
+ЗАДАЧА 1-2(JAVA)
+public class Alphabet {
+    public static void main(String[] args) {
+        // Создаем массив с буквами алфавита
+        char[] alphabet = new char[26];
+        
+        // Заполняем массив буквами от 'a' до 'z'
+        for (int i = 0; i < 26; i++) {
+            alphabet[i] = (char)('a' + i); // Преобразуем число в символ
+        }
+        
+        // Выводим буквы и их коды
+        System.out.println("Буква -> Код");
+        for (char letter : alphabet) {
+            System.out.println(letter + " -> " + (int)letter);
+        }
+    }
+}
+
+public class VowelCounter {
+    public static void main(String[] args) {
+        String text = "Hello World! Programming is fun!"; // Исходный текст
+        int vowelCount = 0; // Счетчик гласных
+        
+        // Массив гласных букв
+        char[] vowels = {'a', 'e', 'i', 'o', 'u', 'y'};
+        
+        // Преобразуем текст в нижний регистр для удобства сравнения
+        String lowerText = text.toLowerCase();
+        
+        // Подсчитываем гласные
+        for (int i = 0; i < lowerText.length(); i++) {
+            char currentChar = lowerText.charAt(i);
+            
+            // Проверяем, является ли символ гласной
+            for (char vowel : vowels) {
+                if (currentChar == vowel) {
+                    vowelCount++;
+                    break; // Выходим из внутреннего цикла
+                }
+            }
+        }
+        
+        System.out.println("Текст: " + text);
+        System.out.println("Количество гласных: " + vowelCount);
+    }
+}
 
