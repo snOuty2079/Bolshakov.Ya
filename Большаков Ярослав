@@ -82,4 +82,425 @@ public class VowelCounter {
         System.out.println("Количество гласных: " + vowelCount);
     }
 }
+___________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+___________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+ЗАДАЧИ НА ОДНОСВЯЗНЫЕ СПИСКИ 1-2(C++)
+#include <iostream>
+
+// Узел списка
+struct Node {
+    int data;
+    Node* next;
+};
+
+// Функция для добавления нового узла в конец списка
+void append(Node*& head, int value) {
+    Node* newNode = new Node{value, nullptr};
+
+    // Если список пуст, новый узел становится головой
+    if (head == nullptr) {
+        head = newNode;
+        return;
+    }
+
+    // Идем до последнего узла
+    Node* temp = head;
+    while (temp->next != nullptr) {
+        temp = temp->next;
+    }
+    // Присоединяем новый узел к последнему
+    temp->next = newNode;
+}
+
+// Функция для печати списка
+void printList(Node* head) {
+    Node* temp = head;
+    std::cout << "Список: ";
+    while (temp != nullptr) {
+        std::cout << temp->data << " -> ";
+        temp = temp->next;
+    }
+    std::cout << "nullptr" << std::endl;
+}
+
+// Функция для вычисления суммы элементов
+int sumList(Node* head) {
+    int sum = 0;
+    Node* temp = head;
+    while (temp != nullptr) {
+        sum += temp->data;
+        temp = temp->next;
+    }
+    return sum;
+}
+
+// Функция для поиска максимального элемента
+int findMax(Node* head) {
+    // Если список пуст, возвращаем минимальное значение int
+    if (head == nullptr) {
+        return INT_MIN;
+    }
+    int maxVal = head->data;
+    Node* temp = head->next; // Начинаем сравнение со второго элемента
+
+    while (temp != nullptr) {
+        if (temp->data > maxVal) {
+            maxVal = temp->data;
+        }
+        temp = temp->next;
+    }
+    return maxVal;
+}
+
+// Функция для удаления всего списка и освобождения памяти
+void deleteList(Node*& head) {
+    while (head != nullptr) {
+        Node* temp = head;       // Запоминаем текущий узел
+        head = head->next;       // Перемещаем голову на следующий узел
+        delete temp;             // Удаляем запомненный узел
+    }
+    std::cout << "Память освобождена." << std::endl;
+}
+
+int main() {
+    setlocale(LC_ALL, "rus"); // Для корректного отображения русского языка в консоли Windows
+    Node* head = nullptr; // Инициализируем пустой список
+
+    int n;
+    std::cout << "Введите количество элементов: ";
+    std::cin >> n;
+
+    std::cout << "Введите " << n << " чисел через пробел или через Enter: ";
+    for (int i = 0; i < n; ++i) {
+        int num;
+        std::cin >> num;
+        append(head, num);
+    }
+
+    // Демонстрация работы функций
+    printList(head);
+    std::cout << "Сумма элементов: " << sumList(head) << std::endl;
+    std::cout << "Максимальный элемент: " << findMax(head) << std::endl;
+
+    // Обязательно чистим память!
+    deleteList(head);
+
+    return 0;
+}
+#include <iostream>
+
+struct Node {
+    int data;
+    Node* next;
+};
+
+// Функция для добавления элемента в конец (для удобства тестирования)
+void append(Node*& head, int value) {
+    Node* newNode = new Node{value, nullptr};
+    if (head == nullptr) {
+        head = newNode;
+        return;
+    }
+    Node* temp = head;
+    while (temp->next != nullptr) {
+        temp = temp->next;
+    }
+    temp->next = newNode;
+}
+
+// Функция для печати списка
+void printList(Node* head) {
+    Node* temp = head;
+    std::cout << "Список: ";
+    while (temp != nullptr) {
+        std::cout << temp->data << " -> ";
+        temp = temp->next;
+    }
+    std::cout << "nullptr" << std::endl;
+}
+
+// Функция для удаления всех четных элементов
+void removeEven(Node*& head) {
+    // Обрабатываем случай, когда список пуст
+    if (head == nullptr) {
+        return;
+    }
+
+    // Удаляем все четные элементы в начале списка
+    // (пока голова не станет нечетной или список не закончится)
+    while (head != nullptr && head->data % 2 == 0) {
+        Node* temp = head;
+        head = head->next;
+        delete temp;
+    }
+
+    // Если после этого список пуст, выходим
+    if (head == nullptr) {
+        return;
+    }
+
+    // Теперь обрабатываем остальную часть списка
+    Node* current = head;
+    while (current->next != nullptr) {
+        // Если следующий узел четный - удаляем его
+        if (current->next->data % 2 == 0) {
+            Node* temp = current->next; // Запоминаем узел для удаления
+            current->next = temp->next; // "Перешагиваем" через удаляемый узел
+            delete temp;                // Удаляем узел
+        } else {
+            // Если следующий узел нечетный, переходим к нему
+            current = current->next;
+        }
+    }
+}
+
+// Функция для удаления всего списка
+void deleteList(Node*& head) {
+    while (head != nullptr) {
+        Node* temp = head;
+        head = head->next;
+        delete temp;
+    }
+}
+
+int main() {
+    setlocale(LC_ALL, "rus");
+    Node* head = nullptr;
+
+    // Создаем тестовый список
+    append(head, 2);  // Четный в начале
+    append(head, 5);  // Нечетный
+    append(head, 8);  // Четный в середине
+    append(head, 3);  // Нечетный
+    append(head, 4);  // Четный в конце
+    append(head, 7);  // Нечетный
+
+    std::cout << "Исходный список:" << std::endl;
+    printList(head);
+
+    // Удаляем четные элементы
+    removeEven(head);
+
+    std::cout << "Список после удаления четных элементов:" << std::endl;
+    printList(head); // Должен остаться: 5 -> 3 -> 7 -> nullptr
+
+    deleteList(head);
+
+    return 0;
+}
+ЗАДАЧИ НА 3-4 (JAVA)
+import java.util.Scanner;
+
+// Класс, представляющий узел списка
+class Node {
+    int data;       // Данные, которые хранятся в узле
+    Node next;      // Ссылка на следующий узел
+    
+    // Конструктор для создания нового узла
+    public Node(int data) {
+        this.data = data;
+        this.next = null;  // Пока не знаем, какой узел будет следующим
+    }
+}
+
+// Класс для управления всем списком
+class LinkedList {
+    private Node head;  // "Голова" списка - первый узел
+    
+    public LinkedList() {
+        this.head = null;  // Изначально список пустой
+    }
+    
+    // Метод для добавления элемента в конец списка
+    public void append(int value) {
+        Node newNode = new Node(value);  // Создаем новый узел
+        
+        // Если список пустой, новый узел становится головой
+        if (head == null) {
+            head = newNode;
+            return;
+        }
+        
+        // Если список не пустой, идем до последнего узла
+        Node temp = head;
+        while (temp.next != null) {
+            temp = temp.next;
+        }
+        // Присоединяем новый узел к последнему
+        temp.next = newNode;
+    }
+    
+    // Метод для вывода списка на экран
+    public void printList() {
+        Node temp = head;
+        System.out.print("Список: ");
+        while (temp != null) {
+            System.out.print(temp.data + " -> ");
+            temp = temp.next;
+        }
+        System.out.println("null");  // Конец списка
+    }
+    
+    // Метод для подсчета суммы всех элементов
+    public int sumList() {
+        int sum = 0;
+        Node temp = head;
+        
+        // Проходим по всем узлам и суммируем их значения
+        while (temp != null) {
+            sum += temp.data;
+            temp = temp.next;
+        }
+        return sum;
+    }
+    
+    // Метод для поиска максимального элемента
+    public int findMax() {
+        if (head == null) {
+            return Integer.MIN_VALUE;  // Если список пустой
+        }
+        
+        int maxVal = head.data;  // Начинаем с первого элемента
+        Node temp = head.next;   // Переходим ко второму элементу
+        
+        while (temp != null) {
+            if (temp.data > maxVal) {
+                maxVal = temp.data;  // Обновляем максимум
+            }
+            temp = temp.next;
+        }
+        return maxVal;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        LinkedList list = new LinkedList();  // Создаем пустой список
+        
+        System.out.print("Введите количество элементов: ");
+        int n = scanner.nextInt();
+        
+        System.out.println("Введите " + n + " чисел:");
+        for (int i = 0; i < n; i++) {
+            int num = scanner.nextInt();
+            list.append(num);  // Добавляем каждое число в список
+        }
+        
+        // Демонстрация работы всех методов
+        System.out.println("\nРезультаты:");
+        list.printList();
+        System.out.println("Сумма элементов: " + list.sumList());
+        System.out.println("Максимальный элемент: " + list.findMax());
+        
+        scanner.close();
+    }
+}
+
+import java.util.Scanner;
+
+class Node {
+    int data;
+    Node next;
+    
+    public Node(int data) {
+        this.data = data;
+        this.next = null;
+    }
+}
+
+class LinkedList {
+    private Node head;
+    
+    public LinkedList() {
+        this.head = null;
+    }
+    
+    // Метод для добавления элемента (такой же как в первой задаче)
+    public void append(int value) {
+        Node newNode = new Node(value);
+        if (head == null) {
+            head = newNode;
+            return;
+        }
+        
+        Node temp = head;
+        while (temp.next != null) {
+            temp = temp.next;
+        }
+        temp.next = newNode;
+    }
+    
+    // Метод для вывода списка
+    public void printList() {
+        Node temp = head;
+        System.out.print("Список: ");
+        while (temp != null) {
+            System.out.print(temp.data + " -> ");
+            temp = temp.next;
+        }
+        System.out.println("null");
+    }
+    
+    // Метод для удаления всех четных элементов
+    public void removeEven() {
+        // Особый случай: список пустой
+        if (head == null) {
+            return;
+        }
+        
+        // Удаляем все четные элементы в начале списка
+        // Пока голова существует и ее значение четное
+        while (head != null && head.data % 2 == 0) {
+            head = head.next;  // Просто "перепрыгиваем" через первую четную ноду
+        }
+        
+        // Если после этого список пустой, выходим
+        if (head == null) {
+            return;
+        }
+        
+        // Теперь обрабатываем остальную часть списка
+        Node current = head;
+        
+        // Смотрим на СЛЕДУЮЩИЙ узел, а не на текущий
+        while (current.next != null) {
+            // Если следующий узел четный - удаляем его
+            if (current.next.data % 2 == 0) {
+                // "Перешагиваем" через четный узел
+                current.next = current.next.next;
+            } else {
+                // Переходим к следующему узлу только если он нечетный
+                current = current.next;
+            }
+        }
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        LinkedList list = new LinkedList();
+        
+        // Создаем тестовый список
+        int[] testNumbers = {2, 5, 8, 3, 4, 7};
+        
+        System.out.println("Создаем тестовый список:");
+        for (int num : testNumbers) {
+            list.append(num);
+            System.out.println("Добавлен элемент: " + num);
+        }
+        
+        System.out.println("\nИсходный список:");
+        list.printList();
+        
+        // Удаляем четные элементы
+        list.removeEven();
+        
+        System.out.println("\nСписок после удаления четных элементов:");
+        list.printList(); // Ожидаемый результат: 5 -> 3 -> 7 -> null
+        
+        scanner.close();
+    }
+}
 
