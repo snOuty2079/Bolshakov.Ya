@@ -1,0 +1,295 @@
+2 задачи на бин. кучи (C++)
+#include <iostream>
+#include <queue>
+#include <vector>
+
+int main() {
+    // Создаем минимальную кучу
+    std::priority_queue<int, std::vector<int>, std::greater<int>> minHeap;
+    
+    // Добавляем элементы
+    minHeap.push(5);
+    minHeap.push(2);
+    minHeap.push(8);
+    minHeap.push(1);
+    minHeap.push(3);
+    
+    std::cout << "Элементы в минимальной куче: ";
+    while (!minHeap.empty()) {
+        std::cout << minHeap.top() << " ";
+        minHeap.pop();
+    }
+    
+    return 0;
+}
+
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+int main() {
+    std::vector<int> numbers = {7, 2, 9, 1, 5, 3};
+    
+    // Преобразуем вектор в максимальную кучу
+    std::make_heap(numbers.begin(), numbers.end());
+    
+    std::cout << "Максимальный элемент: " << numbers[0] << std::endl;
+    
+    // Добавляем новый элемент
+    numbers.push_back(10);
+    std::push_heap(numbers.begin(), numbers.end());
+    
+    std::cout << "Новый максимальный элемент: " << numbers[0] << std::endl;
+    
+    // Извлекаем максимальный элемент
+    std::pop_heap(numbers.begin(), numbers.end());
+    numbers.pop_back();
+    
+    std::cout << "Максимальный элемент после извлечения: " << numbers[0] << std::endl;
+    
+    return 0;
+}
+
+2 задачи на JAVA
+import java.util.PriorityQueue;
+
+public class SimpleHeapExample {
+    public static void main(String[] args) {
+        // Создаем минимальную кучу
+        PriorityQueue<Integer> minHeap = new PriorityQueue<>();
+        
+        // Добавляем элементы
+        minHeap.add(5);
+        minHeap.add(2);
+        minHeap.add(8);
+        minHeap.add(1);
+        minHeap.add(3);
+        
+        System.out.print("Элементы в минимальной куче: ");
+        while (!minHeap.isEmpty()) {
+            System.out.print(minHeap.poll() + " ");
+        }
+    }
+}
+import java.util.Collections;
+import java.util.PriorityQueue;
+
+public class MaxHeapExample {
+    public static void main(String[] args) {
+        // Создаем максимальную кучу
+        PriorityQueue<Integer> maxHeap = new PriorityQueue<>(Collections.reverseOrder());
+        
+        // Добавляем элементы
+        maxHeap.offer(10);
+        maxHeap.offer(30);
+        maxHeap.offer(20);
+        maxHeap.offer(5);
+        
+        System.out.println("Размер кучи: " + maxHeap.size());
+        System.out.println("Максимальный элемент: " + maxHeap.peek());
+        
+        System.out.print("Все элементы в порядке убывания: ");
+        while (!maxHeap.isEmpty()) {
+            System.out.print(maxHeap.poll() + " ");
+        }
+    }
+}
+__________________________________________________________________________________________________________________________________________________________________________________________________
+__________________________________________________________________________________________________________________________________________________________________________________________________
+ПРИМЕРЫ ГРАФОВ(С++)
+#include <iostream>
+#include <vector>
+using namespace std;
+
+class SimpleGraph {
+private:
+    vector<vector<int>> adjList;
+    
+public:
+    SimpleGraph(int vertices) {
+        adjList.resize(vertices);
+    }
+    
+    // Добавляем ребро между двумя вершинами
+    void addEdge(int u, int v) {
+        adjList[u].push_back(v);
+        adjList[v].push_back(u); // Граф неориентированный
+    }
+    
+    // Выводим граф
+    void printGraph() {
+        for (int i = 0; i < adjList.size(); i++) {
+            cout << "Вершина " << i << " соединена с: ";
+            for (int neighbor : adjList[i]) {
+                cout << neighbor << " ";
+            }
+            cout << endl;
+        }
+    }
+};
+
+int main() {
+    // Создаем граф с 5 вершинами
+    SimpleGraph graph(5);
+    
+    // Добавляем ребра
+    graph.addEdge(0, 1);
+    graph.addEdge(0, 2);
+    graph.addEdge(1, 3);
+    graph.addEdge(2, 4);
+    
+    // Выводим граф
+    graph.printGraph();
+    
+    return 0;
+}
+
+#include <iostream>
+#include <vector>
+using namespace std;
+
+class WeightedGraph {
+private:
+    vector<vector<pair<int, int>>> adjList; // пара: (вершина, вес)
+    
+public:
+    WeightedGraph(int vertices) {
+        adjList.resize(vertices);
+    }
+    
+    // Добавляем направленное ребро с весом
+    void addEdge(int from, int to, int weight) {
+        adjList[from].push_back({to, weight});
+    }
+    
+    // Выводим граф
+    void printGraph() {
+        for (int i = 0; i < adjList.size(); i++) {
+            cout << "Из вершины " << i << " можно попасть в: ";
+            for (auto edge : adjList[i]) {
+                cout << edge.first << "(вес=" << edge.second << ") ";
+            }
+            cout << endl;
+        }
+    }
+};
+
+int main() {
+    // Создаем взвешенный ориентированный граф с 4 вершинами
+    WeightedGraph graph(4);
+    
+    // Добавляем ребра с весами
+    graph.addEdge(0, 1, 5);
+    graph.addEdge(0, 2, 3);
+    graph.addEdge(1, 3, 2);
+    graph.addEdge(2, 3, 7);
+    graph.addEdge(2, 1, 1);
+    
+    // Выводим граф
+    graph.printGraph();
+    
+    return 0;
+}
+JAVA
+import java.util.*;
+
+class SimpleGraph {
+    private List<List<Integer>> adjList;
+    
+    public SimpleGraph(int vertices) {
+        adjList = new ArrayList<>();
+        for (int i = 0; i < vertices; i++) {
+            adjList.add(new ArrayList<>());
+        }
+    }
+    
+    // Добавляем ребро между двумя вершинами
+    public void addEdge(int u, int v) {
+        adjList.get(u).add(v);
+        adjList.get(v).add(u); // Граф неориентированный
+    }
+    
+    // Выводим граф
+    public void printGraph() {
+        for (int i = 0; i < adjList.size(); i++) {
+            System.out.print("Вершина " + i + " соединена с: ");
+            for (int neighbor : adjList.get(i)) {
+                System.out.print(neighbor + " ");
+            }
+            System.out.println();
+        }
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        // Создаем граф с 5 вершинами
+        SimpleGraph graph = new SimpleGraph(5);
+        
+        // Добавляем ребра
+        graph.addEdge(0, 1);
+        graph.addEdge(0, 2);
+        graph.addEdge(1, 3);
+        graph.addEdge(2, 4);
+        
+        // Выводим граф
+        graph.printGraph();
+    }
+}
+
+import java.util.*;
+
+class WeightedGraph {
+    static class Edge {
+        int to;
+        int weight;
+        
+        Edge(int to, int weight) {
+            this.to = to;
+            this.weight = weight;
+        }
+    }
+    
+    private List<List<Edge>> adjList;
+    
+    public WeightedGraph(int vertices) {
+        adjList = new ArrayList<>();
+        for (int i = 0; i < vertices; i++) {
+            adjList.add(new ArrayList<>());
+        }
+    }
+    
+    // Добавляем направленное ребро с весом
+    public void addEdge(int from, int to, int weight) {
+        adjList.get(from).add(new Edge(to, weight));
+    }
+    
+    // Выводим граф
+    public void printGraph() {
+        for (int i = 0; i < adjList.size(); i++) {
+            System.out.print("Из вершины " + i + " можно попасть в: ");
+            for (Edge edge : adjList.get(i)) {
+                System.out.print(edge.to + "(вес=" + edge.weight + ") ");
+            }
+            System.out.println();
+        }
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        // Создаем взвешенный ориентированный граф с 4 вершинами
+        WeightedGraph graph = new WeightedGraph(4);
+        
+        // Добавляем ребра с весами
+        graph.addEdge(0, 1, 5);
+        graph.addEdge(0, 2, 3);
+        graph.addEdge(1, 3, 2);
+        graph.addEdge(2, 3, 7);
+        graph.addEdge(2, 1, 1);
+        
+        // Выводим граф
+        graph.printGraph();
+    }
+}
