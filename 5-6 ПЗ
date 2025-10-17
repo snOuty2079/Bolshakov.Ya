@@ -1,0 +1,444 @@
+ПРИМЕРЫ РЕАЛИЗАЦИИ АЛГОРИТМА КОММИВОЯЖЕРА(C++).
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <climits>
+
+using namespace std;
+
+class TSP {
+private:
+    vector<vector<int>> graph;  // Матрица смежности - хранит расстояния между городами
+    int numCities;              // Количество городов
+    
+public:
+    // Конструктор класса
+    TSP(vector<vector<int>> distances) : graph(distances) {
+        numCities = distances.size();  // Определяем количество городов по размеру матрицы
+        cout << "Инициализирована задача коммивояжера с " << numCities << " городами" << endl;
+    }
+    
+    // Основной метод решения задачи
+    void solve() {
+        cout << "\n=== НАЧАЛО РЕШЕНИЯ ЗАДАЧИ КОММИВОЯЖЕРА ===" << endl;
+        
+        // Шаг 1: Создаем начальную последовательность городов
+        // Например, для 4 городов: [0, 1, 2, 3]
+        vector<int> cities;
+        for (int i = 0; i < numCities; i++) {
+            cities.push_back(i);
+        }
+        
+        cout << "Начальная последовательность городов: ";
+        printVector(cities);
+        
+        // Шаг 2: Инициализируем переменные для поиска оптимального маршрута
+        int minDistance = INT_MAX;     // Начальное значение - максимально возможное число
+        vector<int> bestRoute;         // Здесь будем хранить лучший найденный маршрут
+        int permutationCount = 0;      // Счетчик проверенных перестановок
+        
+        // Шаг 3: Перебираем все возможные перестановки маршрутов
+        // Используем алгоритм next_permutation для генерации перестановок
+        cout << "\nНачинаем перебор всех возможных маршрутов..." << endl;
+        
+        do {
+            permutationCount++;
+            
+            // Вычисляем длину текущего маршрута
+            int currentDistance = calculateDistance(cities);
+            
+            // Для демонстрации выводим каждый маршрут 
+            cout << "Маршрут " << permutationCount << ": ";
+            printVector(cities);
+            cout << " | Длина: " << currentDistance;
+            
+            // Проверяем, не нашли ли мы более короткий маршрут
+            if (currentDistance < minDistance) {
+                minDistance = currentDistance;
+                bestRoute = cities;
+                cout << " ← НОВЫЙ ОПТИМУМ!";
+            }
+            cout << endl;
+            
+        } while (next_permutation(cities.begin() + 1, cities.end()));
+        // Важно: начинаем перестановки с 1 элемента, чтобы фиксировать стартовый город (0)
+        // Это уменьшает количество переборов в n раз
+        
+        // Шаг 4: Выводим финальный результат
+        cout << "\n=== РЕШЕНИЕ НАЙДЕНО ===" << endl;
+        cout << "Всего проверено маршрутов: " << permutationCount << endl;
+        printSolution(bestRoute, minDistance);
+    }
+    
+private:
+    // Метод для вычисления общей длины маршрута
+    int calculateDistance(const vector<int>& route) {
+        int distance = 0;
+        
+        // Суммируем расстояния между последовательными городами в маршруте
+        for (int i = 0; i < route.size() - 1; i++) {
+            int from = route[i];       // Текущий город
+            int to = route[i + 1];     // Следующий город
+            distance += graph[from][to]; // Добавляем расстояние между ними
+            
+            // Отладочный вывод (можно закомментировать)
+            // cout << "  " << from << " → " << to << " = " << graph[from][to] << endl;
+        }
+        
+        // Добавляем расстояние возврата в начальный город
+        // Это важно - маршрут должен быть замкнутым циклом
+        distance += graph[route.back()][route[0]];
+        
+        return distance;
+    }
+    
+    // Метод для красивого вывода найденного решения
+    void printSolution(const vector<int>& route, int distance) {
+        cout << "\n🎉 ОПТИМАЛЬНЫЙ МАРШРУТ НАЙДЕН! 🎉" << endl;
+        cout << "=====================================" << endl;
+        
+        // Выводим маршрут в виде цикла
+        cout << "Маршрут: ";
+        for (int i = 0; i < route.size(); i++) {
+            cout << route[i];
+            if (i < route.size() - 1) {
+                cout << " → ";
+            }
+        }
+        cout << " → " << route[0] << endl; // Замыкаем цикл
+        
+        cout << "Общая длина маршрута: " << distance << " единиц" << endl;
+        
+        // Выводим подробную разбивку маршрута
+        cout << "\n📊 ПОДРОБНАЯ ИНФОРМАЦИЯ О МАРШРУТЕ:" << endl;
+        cout << "-------------------------------------" << endl;
+        
+        int total = 0;
+        for (int i = 0; i < route.size(); i++) {
+            int from = route[i];
+            int to = route[(i + 1) % route.size()]; // Используем modulo для замыкания цикла
+            int segmentDistance = graph[from][to];
+            total += segmentDistance;
+            
+            cout << "Этап " << (i + 1) << ": ";
+            cout << "Город " << from << " → Город " << to;
+            cout << " = " << segmentDistance << " единиц";
+            
+            if (i == route.size() - 1) {
+                cout << " (возврат в начало)";
+            }
+            cout << endl;
+        }
+        
+        cout << "-------------------------------------" << endl;
+        cout << "ИТОГО: " << total << " единиц" << endl;
+    }
+    
+    // Вспомогательный метод для вывода вектора
+    void printVector(const vector<int>& vec) {
+        cout << "[";
+        for (int i = 0; i < vec.size(); i++) {
+            cout << vec[i];
+            if (i < vec.size() - 1) cout << ", ";
+        }
+        cout << "]";
+    }
+};
+
+int main() {
+    cout << "ЗАДАЧА КОММИВОЯЖЕРА - ПОЛНЫЙ ПЕРЕБОР" << endl;
+    cout << "=====================================" << endl;
+    
+    // Создаем матрицу расстояний между городами
+    // Представим, что у нас есть 4 города: 0, 1, 2, 3
+    // Матрица симметрична - расстояние от A до B равно расстоянию от B до A
+    
+    vector<vector<int>> distances = {
+        // Расстояния от каждого города до других:
+        {0,  10, 15, 20},  // Из города 0: до 0=0, до 1=10, до 2=15, до 3=20
+        {10, 0,  35, 25},   // Из города 1: до 0=10, до 1=0, до 2=35, до 3=25
+        {15, 35, 0,  30},   // Из города 2: до 0=15, до 1=35, до 2=0, до 3=30
+        {20, 25, 30, 0}     // Из города 3: до 0=20, до 1=25, до 2=30, до 3=0
+    };
+    
+    // Выводим матрицу расстояний для наглядности
+    cout << "\nМатрица расстояний между городами:" << endl;
+    cout << "    0   1   2   3" << endl;
+    cout << "  +---------------" << endl;
+    for (int i = 0; i < distances.size(); i++) {
+        cout << i << " | ";
+        for (int j = 0; j < distances[i].size(); j++) {
+            cout << distances[i][j] << "  ";
+        }
+        cout << endl;
+    }
+    
+    // Создаем объект задачи коммивояжера и решаем ее
+    TSP tsp(distances);
+    tsp.solve();
+    
+    cout << "\n=====================================" << endl;
+    cout << "Решение завершено!" << endl;
+    
+    return 0;
+}
+___________________________________________________________________________________________________________________________________________________________________________________
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+ПРИМЕР НА JAVA.
+import java.util.*;
+
+/**
+ * Реализация задачи коммивояжера с использованием жадного алгоритма
+ * (алгоритм ближайшего соседа)
+ */
+public class GreedyTSP {
+    
+    // Матрица расстояний между городами
+    private int[][] distanceMatrix;
+    private int numCities;
+    private String[] cityNames; // Названия городов для наглядности
+    
+    public GreedyTSP(int[][] distances, String[] names) {
+        this.distanceMatrix = distances;
+        this.numCities = distances.length;
+        this.cityNames = names;
+        
+        System.out.println("Инициализирован жадный алгоритм для " + numCities + " городов");
+        printDistanceMatrix();
+    }
+    
+    /**
+     * Основной метод решения задачи жадным алгоритмом
+     * @return список городов в порядке посещения
+     */
+    public List<Integer> solveGreedy() {
+        System.out.println("\n=== ЗАПУСК ЖАДНОГО АЛГОРИТМА ===");
+        
+        // Множество непосещенных городов
+        Set<Integer> unvisited = new HashSet<>();
+        for (int i = 1; i < numCities; i++) { // Начинаем с 1, так как 0 - стартовый
+            unvisited.add(i);
+        }
+        
+        // Маршрут и текущая позиция
+        List<Integer> route = new ArrayList<>();
+        int currentCity = 0; // Начинаем с первого города
+        route.add(currentCity);
+        
+        System.out.println("Начинаем с города: " + cityNames[currentCity]);
+        
+        // Пока есть непосещенные города
+        while (!unvisited.isEmpty()) {
+            int nearestCity = findNearestNeighbor(currentCity, unvisited);
+            int distanceToNearest = distanceMatrix[currentCity][nearestCity];
+            
+            System.out.println("Из " + cityNames[currentCity] + " ближайший: " + 
+                             cityNames[nearestCity] + " (расстояние: " + distanceToNearest + ")");
+            
+            // Перемещаемся к ближайшему городу
+            route.add(nearestCity);
+            unvisited.remove(nearestCity);
+            currentCity = nearestCity;
+        }
+        
+        // Возвращаемся в начальный город
+        route.add(0);
+        System.out.println("Возвращаемся в начальный город: " + cityNames[0]);
+        
+        return route;
+    }
+    
+    /**
+     * Находит ближайшего непосещенного соседа для текущего города
+     */
+    private int findNearestNeighbor(int currentCity, Set<Integer> unvisited) {
+        int minDistance = Integer.MAX_VALUE;
+        int nearestCity = -1;
+        
+        for (int city : unvisited) {
+            int distance = distanceMatrix[currentCity][city];
+            if (distance < minDistance) {
+                minDistance = distance;
+                nearestCity = city;
+            }
+        }
+        
+        return nearestCity;
+    }
+    
+    /**
+     * Вычисляет общую длину маршрута
+     */
+    public int calculateTotalDistance(List<Integer> route) {
+        int totalDistance = 0;
+        
+        for (int i = 0; i < route.size() - 1; i++) {
+            int from = route.get(i);
+            int to = route.get(i + 1);
+            totalDistance += distanceMatrix[from][to];
+        }
+        
+        return totalDistance;
+    }
+    
+    /**
+     * Красивый вывод результата
+     */
+    public void printSolution(List<Integer> route) {
+        int totalDistance = calculateTotalDistance(route);
+        
+        System.out.println("\n РЕЗУЛЬТАТ РАБОТЫ ЖАДНОГО АЛГОРИТМА:");
+        System.out.println("=========================================");
+        
+        // Выводим маршрут
+        System.out.print("Маршрут: ");
+        for (int i = 0; i < route.size(); i++) {
+            System.out.print(cityNames[route.get(i)]);
+            if (i < route.size() - 1) {
+                System.out.print(" → ");
+            }
+        }
+        
+        System.out.println("\nОбщая длина маршрута: " + totalDistance + " км");
+        
+        // Подробная информация по этапам
+        System.out.println("\n ДЕТАЛИ МАРШРУТА:");
+        System.out.println("-------------------");
+        
+        for (int i = 0; i < route.size() - 1; i++) {
+            int from = route.get(i);
+            int to = route.get(i + 1);
+            int distance = distanceMatrix[from][to];
+            
+            System.out.printf("Этап %d: %s → %s = %d км\n", 
+                i + 1, cityNames[from], cityNames[to], distance);
+        }
+        
+        System.out.println("-------------------");
+        System.out.printf("ИТОГО: %d км\n", totalDistance);
+        
+        // Сравнение с оптимальным решением (для этого примера мы знаем оптимальный маршрут)
+        compareWithOptimal(route, totalDistance);
+    }
+    
+    /**
+     * Сравнивает результат жадного алгоритма с известным оптимальным решением
+     */
+    private void compareWithOptimal(List<Integer> greedyRoute, int greedyDistance) {
+        // Для этого набора городов известен оптимальный маршрут
+        int[] optimalRoute = {0, 2, 3, 1, 0}; // Москва → Новгород → Казань → СПб → Москва
+        int optimalDistance = calculateDistanceForRoute(optimalRoute);
+        
+        System.out.println("\n СРАВНЕНИЕ С ОПТИМАЛЬНЫМ РЕШЕНИЕМ:");
+        System.out.println("-----------------------------------");
+        System.out.println("Жадный алгоритм: " + greedyDistance + " км");
+        System.out.println("Оптимальный маршрут: " + optimalDistance + " км");
+        
+        if (greedyDistance == optimalDistance) {
+            System.out.println("Жадный алгоритм нашел оптимальное решение!");
+        } else {
+            int difference = greedyDistance - optimalDistance;
+            double percentage = ((double) difference / optimalDistance) * 100;
+            System.out.printf("Жадный алгоритм длиннее на %d км (%.1f%%)\n", 
+                            difference, percentage);
+        }
+    }
+    
+    private int calculateDistanceForRoute(int[] route) {
+        int distance = 0;
+        for (int i = 0; i < route.length - 1; i++) {
+            distance += distanceMatrix[route[i]][route[i + 1]];
+        }
+        return distance;
+    }
+    
+    /**
+     * Выводит матрицу расстояний
+     */
+    private void printDistanceMatrix() {
+        System.out.println("\nМатрица расстояний между городами (км):");
+        System.out.print("        ");
+        for (String name : cityNames) {
+            System.out.printf("%-8s", name);
+        }
+        System.out.println();
+        
+        for (int i = 0; i < numCities; i++) {
+            System.out.printf("%-8s", cityNames[i]);
+            for (int j = 0; j < numCities; j++) {
+                System.out.printf("%-8d", distanceMatrix[i][j]);
+            }
+            System.out.println();
+        }
+    }
+    
+    /**
+     * Дополнительный метод: показывает как работает алгоритм по шагам
+     */
+    public void demonstrateStepByStep() {
+        System.out.println("\n ДЕМОНСТРАЦИЯ РАБОТЫ АЛГОРИТМА ПО ШАГАМ:");
+        System.out.println("===========================================");
+        
+        Set<Integer> unvisited = new HashSet<>();
+        for (int i = 1; i < numCities; i++) {
+            unvisited.add(i);
+        }
+        
+        int current = 0;
+        int step = 1;
+        
+        while (!unvisited.isEmpty()) {
+            System.out.println("\nШаг " + step + ":");
+            System.out.println("Текущий город: " + cityNames[current]);
+            System.out.println("Непосещенные города: " + 
+                unvisited.stream().map(i -> cityNames[i]).toList());
+            
+            // Находим расстояния до всех непосещенных городов
+            Map<Integer, Integer> distances = new HashMap<>();
+            for (int city : unvisited) {
+                distances.put(city, distanceMatrix[current][city]);
+            }
+            
+            System.out.println("Расстояния до непосещенных: " + distances);
+            
+            int nearest = findNearestNeighbor(current, unvisited);
+            System.out.println("Выбираем ближайший: " + cityNames[nearest]);
+            
+            current = nearest;
+            unvisited.remove(nearest);
+            step++;
+        }
+    }
+    
+    // Главный метод для тестирования
+    public static void main(String[] args) {
+        // Создаем матрицу расстояний между российскими городами
+        int[][] distances = {
+            // Москва, СПб, Новгород, Казань
+            {0, 710,  540,  800},   // Москва
+            {710, 0,   220,  1500}, // Санкт-Петербург  
+            {540, 220, 0,    1200}, // Новгород
+            {800, 1500, 1200, 0}    // Казань
+        };
+        
+        String[] cityNames = {"Москва", "СПб", "Новгород", "Казань"};
+        
+        // Создаем решатель
+        GreedyTSP solver = new GreedyTSP(distances, cityNames);
+        
+        // Демонстрируем пошаговую работу
+        solver.demonstrateStepByStep();
+        
+        // Решаем задачу
+        List<Integer> route = solver.solveGreedy();
+        
+        // Выводим результат
+        solver.printSolution(route);
+        
+        System.out.println("\n=========================================");
+        System.out.println("Замечание: Жадный алгоритм не всегда находит");
+        System.out.println("оптимальное решение, но работает очень быстро!";
+    }
+}
