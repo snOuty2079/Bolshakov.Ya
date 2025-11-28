@@ -1,0 +1,105 @@
+def gcd(a, b):
+    # Базовый случай: когда второе число становится 0,
+    # первое число и есть НОД
+    if b == 0:
+        return a
+    # Рекурсивный случай: НОД(a, b) = НОД(b, a % b)
+    return gcd(b, a % b)
+
+# Пример использования
+print(gcd(48, 18))  # 6
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+def count_vowels(s, index=0):
+    vowels = "aeiouAEIOU"
+    
+    # Базовый случай: дошли до конца строки
+    if index == len(s):
+        return 0
+    
+    # Проверяем текущий символ + рекурсивно обрабатываем остаток строки
+    current_char = s[index]
+    current_count = 1 if current_char in vowels else 0
+    
+    return current_count + count_vowels(s, index + 1)
+
+# Пример использования
+print(count_vowels("Hello World"))  # 3
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+def array_sum(arr, index=0):
+    # Базовый случай: дошли до конца массива
+    if index == len(arr):
+        return 0
+    
+    # Текущий элемент + сумма оставшихся элементов
+    return arr[index] + array_sum(arr, index + 1)
+
+# Пример использования
+print(array_sum([1, 2, 3, 4, 5]))  # 15
+__________________________________________________________________________________________________________________________________________________________________________
+def generate_binary_strings(n, prefix=""):
+    # Базовый случай: достигли нужной длины
+    if n == 0:
+        print(prefix)
+        return
+    
+    # Рекурсивный случай: добавляем '0' и '1' к текущей строке
+    generate_binary_strings(n - 1, prefix + "0")
+    generate_binary_strings(n - 1, prefix + "1")
+
+# Пример использования
+generate_binary_strings(3)
+____________________________________________________________________________________________________________________________________________________________________________________
+def is_safe(queens, row, col):
+    """Проверяем, можно ли поставить ферзя в (row, col)"""
+    # Проверяем все предыдущие строки
+    for i in range(row):
+        # Проверка столбца и диагоналей
+        if queens[i] == col or abs(queens[i] - col) == abs(i - row):
+            return False
+    return True
+
+def solve_n_queens(row, n, queens, solutions):
+    # Базовый случай: расставили всех ферзей
+    if row == n:
+        solutions.append(queens[:])  # Сохраняем копию решения
+        return
+    
+    # Пробуем поставить ферзя в каждый столбец текущей строки
+    for col in range(n):
+        if is_safe(queens, row, col):
+            queens[row] = col  # Ставим ферзя
+            solve_n_queens(row + 1, n, queens, solutions)  # Рекурсия для следующей строки
+            queens[row] = -1  # Backtrack: убираем ферзя
+
+# Пример использования
+n = 8
+queens = [-1] * n  # queens[i] = столбец ферзя в строке i
+solutions = []
+solve_n_queens(0, n, queens, solutions)
+print(f"Найдено решений для {n} ферзей: {len(solutions)}")
+_______________________________________________________________________________________________________________________________________________________________________________
+class TreeNode:
+    def __init__(self, val=0, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+
+def count_leaves(root):
+    # Базовый случай: пустое дерево
+    if not root:
+        return 0
+    
+    # Базовый случай: лист (нет потомков)
+    if not root.left and not root.right:
+        return 1
+    
+    # Рекурсивный случай: сумма листьев в левом и правом поддеревьях
+    return count_leaves(root.left) + count_leaves(root.right)
+
+
+root = TreeNode(1, 
+               TreeNode(2, 
+                       TreeNode(4), 
+                       TreeNode(5)), 
+               TreeNode(3))
+print(count_leaves(root))  # 3
