@@ -1,1 +1,420 @@
+Алгоритм Форда-Фалкерсона.
+from collections import defaultdict, deque
+import numpy as np
+import matplotlib.pyplot as plt
+import networkx as nx
+
+class MaxFlowFordFulkerson:
+    """
+    Алгоритм Форда-Фалкерсона для нахождения максимального потока в сети
+    Использует поиск увеличивающих путей через BFS (алгоритм Эдмондса-Карпа)
+    """
+    
+    def __init__(self, vertices):
+        self.V = vertices  # количество вершин
+        self.graph = defaultdict(lambda: defaultdict(int))  # остаточная сеть
+        self.original_graph = defaultdict(lambda: defaultdict(int))  # оригинальная сеть
+        
+    def add_edge(self, u, v, capacity):
+        """Добавление направленного ребра с пропускной способностью"""
+        self.graph[u][v] = capacity
+        self.original_graph[u][v] = capacity
+        
+    def bfs(self, source, sink, parent):
+        """
+        Поиск в ширину для нахождения увеличивающего пути
+        Возвращает True, если путь от source до sink существует
+        """
+        visited = {source}
+        queue = deque([source])
+        
+        while queue:
+            u = queue.popleft()
+            
+            for v in self.graph[u]:
+                if v not in visited and self.graph[u][v] > 0:
+                    visited.add(v)
+                    queue.append(v)
+                    parent[v] = u
+                    
+                    if v == sink:
+                        return True
+        
+        return False
+    
+    def ford_fulkerson(self, source, sink, visualize=False):
+        """
+        Основной алгоритм Форда-Фалкерсона
+        Возвращает максимальный поток от source до sink
+        """
+        parent = {}
+        max_flow = 0
+        augmenting_paths = []
+        
+        # Пока существует увеличивающий путь
+        while self.bfs(source, sink, parent):
+            # Находим минимальную пропускную способность на пути
+            path_flow = float('inf')
+            s = sink
+            path = []
+            
+            while s != source:
+                path.append(s)
+                path_flow = min(path_flow, self.graph[parent[s]][s])
+                s = parent[s]
+            
+            path.append(source)
+            path.reverse()
+            augmenting_paths.append((path, path_flow))
+            
+            # Обновляем остаточную сеть
+            v = sink
+            while v != source:
+                u = parent[v]
+                self.graph[u][v] -= path_flow  # уменьшаем пропускную способность
+                self.graph[v][u] += path_flow  # добавляем обратное ребро
+                v = parent[v]
+            
+            max_flow += path_flow
+            parent = {}
+        
+        if visualize:
+            self.visualize_flow(source, sink, augmenting_paths, max_flow)
+        
+        return max_flow, augmenting_paths
+    
+    def min_cut(self, source, sink):
+        """
+        Нахождение минимального разреза после выполнения алгоритма
+        """
+        # Запускаем BFS из source в остаточной сети
+        visited = set()
+        queue = deque([source])
+        visited.add(source)
+        
+        while queue:
+            u = queue.popleft()
+            for v in self.graph[u]:
+                if v not in visited and self.graph[u][v] > 0:
+                    visited.add(v)
+                    queue.append(v)
+        
+        # Разрез - это все ребра из visited в не-visited
+        cut_edges = []
+        for u in visited:
+            for v in self.original_graph[u]:
+                if v not in visited:
+                    cut_edges.append((u, v, self.original_graph[u][v]))
+        
+        return visited, cut_edges
+    
+    def visualize_flow(self, source, sink, augmenting_paths, max_flow):
+        """Визуализация сети и потока"""
+        G = nx.DiGraph()
+        
+        # Добавляем ребра с пропускными способностями
+        for u in self.original_graph:
+            for v in self.original_graph[u]:
+                capacity = self.original_graph[u][v]
+                G.add_edge(u, v, capacity=capacity, flow=0)
+        
+        # Восстанавливаем поток по найденным путям
+        edge_flows = defaultdict(int)
+        for path, flow in augmenting_paths:
+            for i in range(len(path) - 1):
+                u, v = path[i], path[i+1]
+                edge_flows[(u, v)] += flow
+        
+        # Настройка визуализации
+        pos = nx.spring_layout(G, seed=42)
+        plt.figure(figsize=(15, 10))
+        
+        # Рисуем узлы
+        node_colors = ['lightgreen' if node == source else 
+                      'lightcoral' if node == sink else 
+                      'lightblue' for node in G.nodes()]
+        
+        nx.draw_networkx_nodes(G, pos, node_color=node_colors, 
+                              node_size=2000, alpha=0.8)
+        
+        # Рисуем ребра с потоками
+        edge_labels = {}
+        for (u, v) in G.edges():
+            capacity = G[u][v]['capacity']
+            flow = edge_flows.get((u, v), 0)
+            
+            # Цвет ребра в зависимости от загрузки
+            if capacity > 0:
+                utilization = flow / capacity
+                if utilization == 0:
+                    color = 'gray'
+                elif utilization < 0.5:
+                    color = 'lightgreen'
+                elif utilization < 0.8:
+                    color = 'orange'
+                else:
+                    color = 'red'
+                
+                # Толщина ребра пропорциональна потоку
+                width = 1 + 3 * utilization
+                
+                nx.draw_networkx_edges(G, pos, edgelist=[(u, v)], 
+                                      edge_color=color, width=width,
+                                      arrows=True, arrowsize=20,
+                                      connectionstyle='arc3,rad=0.1')
+            
+            edge_labels[(u, v)] = f"{flow}/{capacity}"
+        
+        # Подписи узлов и ребер
+        nx.draw_networkx_labels(G, pos, font_size=12, font_weight='bold')
+        nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, 
+                                    font_color='red', font_size=10)
+        
+        plt.title(f"Максимальный поток: {max_flow}\n"
+                 f"Количество увеличивающих путей: {len(augmenting_paths)}",
+                 fontsize=14, pad=20)
+        plt.axis('off')
+        plt.tight_layout()
+        plt.show()
+        
+        # Вывод информации о путях
+        print("\nНайденные увеличивающие пути:")
+        for i, (path, flow) in enumerate(augmenting_paths, 1):
+            print(f"Путь {i}: {' → '.join(map(str, path))}, поток: {flow}")
+    
+    def create_example_network(self):
+        """Создание тестовой сети"""
+        # Пример из классического учебника
+        self.add_edge(0, 1, 16)
+        self.add_edge(0, 2, 13)
+        self.add_edge(1, 2, 10)
+        self.add_edge(1, 3, 12)
+        self.add_edge(2, 1, 4)
+        self.add_edge(2, 4, 14)
+        self.add_edge(3, 2, 9)
+        self.add_edge(3, 5, 20)
+        self.add_edge(4, 3, 7)
+        self.add_edge(4, 5, 4)
+        
+        return self
+
+# Пример использования
+if __name__ == "__main__":
+    print("Алгоритм Форда-Фалкерсона для нахождения максимального потока")
+    print("=" * 60)
+    
+    # Создание сети
+    network = MaxFlowFordFulkerson(6)
+    network.create_example_network()
+    
+    source, sink = 0, 5
+    
+    # Вычисление максимального потока
+    max_flow, paths = network.ford_fulkerson(source, sink, visualize=True)
+    
+    print(f"\nМаксимальный поток из {source} в {sink}: {max_flow}")
+    
+    # Нахождение минимального разреза
+    reachable, cut_edges = network.min_cut(source, sink)
+    
+    print(f"\nДостижимые из source вершины: {sorted(reachable)}")
+    print("Ребра минимального разреза:")
+    for u, v, capacity in cut_edges:
+        print(f"  {u} → {v} (емкость: {capacity})")
+    
+    # Анализ сложности
+    print("\n" + "=" * 60)
+    print("Анализ алгоритма:")
+    print(f"Количество вершин: {network.V}")
+    print(f"Количество ребер: {sum(len(adj) for adj in network.original_graph.values())}")
+    print(f"Количество итераций (путей): {len(paths)}")
+    print("Временная сложность: O(E * max_flow) или O(V * E²) для Эдмондса-Карпа")
+_______________________________________________________________________________________________________________________________________________-
+
+Максимальный поток: Edmonds–Karp
+
+from collections import deque
+
+def edmonds_karp(n, edges, s, t):
+    """
+    n: number of vertices (0..n-1)
+    edges: list of (u, v, cap)
+    s: source
+    t: sink
+    returns: max_flow, flow_matrix (n x n)
+    """
+    cap = [[0]*n for _ in range(n)]
+    for u, v, c in edges:
+        cap[u][v] += c  # allow parallel edges
+
+    flow = [[0]*n for _ in range(n)]
+    max_flow = 0
+
+    while True:
+        parent = [-1]*n
+        parent[s] = s
+        q = deque([s])
+
+        while q and parent[t] == -1:
+            u = q.popleft()
+            for v in range(n):
+                if parent[v] == -1 and cap[u][v] - flow[u][v] > 0:
+                    parent[v] = u
+                    q.append(v)
+
+        if parent[t] == -1:
+            break  # no augmenting path => maximal
+
+        # bottleneck
+        add = float("inf")
+        v = t
+        while v != s:
+            u = parent[v]
+            add = min(add, cap[u][v] - flow[u][v])
+            v = u
+
+        # augment
+        v = t
+        while v != s:
+            u = parent[v]
+            flow[u][v] += add
+            flow[v][u] -= add  # residual/back edge update
+            v = u
+
+        max_flow += add
+
+    return max_flow, flow
+
+if __name__ == "__main__":
+    n = 6
+    s, t = 0, 5
+    edges = [
+        (0, 1, 16), (0, 2, 13),
+        (1, 2, 10), (1, 3, 12),
+        (2, 1, 4),  (2, 4, 14),
+        (3, 2, 9),  (3, 5, 20),
+        (4, 3, 7),  (4, 5, 4),
+    ]
+    mf, f = edmonds_karp(n, edges, s, t)
+    print("max_flow =", mf)
+________________________________________________________________________________________________________________________________________
+Паросочетание: Венгерский алгоритм
+def hungarian_max(weight):
+    """
+    Hungarian algorithm for maximum weight assignment.
+    weight: square matrix (n x n) of weights
+    returns: (max_weight, assignment) where assignment[i]=j
+    """
+    n = len(weight)
+    # Convert to minimization by negating weights.
+    a = [[-weight[i][j] for j in range(n)] for i in range(n)]
+
+    INF = 10**18
+    u = [0]*(n+1)
+    v = [0]*(n+1)
+    p = [0]*(n+1)
+    way = [0]*(n+1)
+
+    for i in range(1, n+1):
+        p[0] = i
+        j0 = 0
+        minv = [INF]*(n+1)
+        used = [False]*(n+1)
+        while True:
+            used[j0] = True
+            i0 = p[j0]
+            delta = INF
+            j1 = 0
+            for j in range(1, n+1):
+                if not used[j]:
+                    cur = a[i0-1][j-1] - u[i0] - v[j]
+                    if cur < minv[j]:
+                        minv[j] = cur
+                        way[j] = j0
+                    if minv[j] < delta:
+                        delta = minv[j]
+                        j1 = j
+            for j in range(0, n+1):
+                if used[j]:
+                    u[p[j]] += delta
+                    v[j] -= delta
+                else:
+                    minv[j] -= delta
+            j0 = j1
+            if p[j0] == 0:
+                break
+        while True:
+            j1 = way[j0]
+            p[j0] = p[j1]
+            j0 = j1
+            if j0 == 0:
+                break
+
+    assignment = [-1]*n
+    for j in range(1, n+1):
+        assignment[p[j]-1] = j-1
+
+    max_weight = sum(weight[i][assignment[i]] for i in range(n))
+    return max_weight, assignment
+
+if __name__ == "__main__":
+    w = [
+        [9, 2, 7],
+        [6, 4, 3],
+        [5, 8, 1],
+    ]
+    best, assn = hungarian_max(w)
+    print("max_weight =", best)
+    print("assignment (row->col) =", assn)
+_____________________________________________________________________________________________________________________________________
+
+Расписания: EDF 
+import heapq
+from dataclasses import dataclass, field
+from typing import List, Optional, Tuple
+
+@dataclass(order=True)
+class Job:
+    deadline: int
+    release: int = field(compare=False)
+    remaining: int = field(compare=False)
+    job_id: str = field(compare=False)
+
+def edf_schedule(jobs_input: List[Tuple[str, int, int, int]], horizon: int):
+    """
+    jobs_input: list of (job_id, release_time, execution_time, absolute_deadline)
+    horizon: total simulation time
+    returns: timeline list of job_id or 'IDLE' each time unit
+    """
+    incoming = sorted(jobs_input, key=lambda x: x[1])
+    idx = 0
+    ready = []
+    timeline = []
+
+    for t in range(horizon):
+        while idx < len(incoming) and incoming[idx][1] == t:
+            job_id, rel, exec_t, ddl = incoming[idx]
+            heapq.heappush(ready, Job(deadline=ddl, release=rel, remaining=exec_t, job_id=job_id))
+            idx += 1
+
+        if ready:
+            job = heapq.heappop(ready)
+            timeline.append(job.job_id)
+            job.remaining -= 1
+            if job.remaining > 0:
+                heapq.heappush(ready, job)
+        else:
+            timeline.append("IDLE")
+
+    return timeline
+
+if __name__ == "__main__":
+    jobs = [
+        ("A", 0, 3, 7),
+        ("B", 1, 2, 4),
+        ("C", 2, 2, 6),
+    ]
+    tl = edf_schedule(jobs, horizon=10)
+    print("timeline:", tl)
+______________________________________________________________________________________________________________________________________-
 
